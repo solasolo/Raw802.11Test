@@ -20,7 +20,7 @@ public:
 
 public:
     static Raw80211* Instance;
-    static void HeaderDebug(const uint8_t *header);
+    static void HeaderDebug(const wifi_ieee80211_mac_hdr_t *header);
 
 public:
     Raw80211(uint8_t channel = 1);

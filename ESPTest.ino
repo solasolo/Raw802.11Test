@@ -1,7 +1,7 @@
 #include "src/Raw80211.h"
 #include "src/RawNow.h"
 
-//#define SENDER
+#define SENDER
 #define DEBUG_PRINT
 
 unsigned int Count = 0;

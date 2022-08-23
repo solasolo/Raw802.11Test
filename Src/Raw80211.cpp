@@ -85,8 +85,7 @@ void Raw80211::Send(const uint8_t *data, uint16_t len)
   buf[Raw80211::LENGTH_OFFSET + 1] = len & 0xff;
 
   RawChannel::Debug("< ");
-  Raw80211::HeaderDebug(buf);
-  RawChannel::Debug(" (Length: %d)\n", int(len));
+  Raw80211::HeaderDebug((const wifi_ieee80211_mac_hdr_t*)buf);
 
   memcpy(buf + SEQ_NUM_OFFSET, (char *)&sequence, 2);
 #ifdef ESP32
@@ -133,13 +132,18 @@ void Raw80211::Start()
 #endif
 }
 
-void Raw80211::HeaderDebug(const uint8_t *header)
+void Raw80211::HeaderDebug(const wifi_ieee80211_mac_hdr_t *header)
 {
 #ifdef DEBUG_PRINT  
-  RawChannel::PrintMAC(header + Raw80211::DST_MAC_OFFSET);
+  RawChannel::PrintMAC(header->addr1);
   RawChannel::Debug(" / ");
-  RawChannel::PrintMAC(header + Raw80211::SRC_MAC_OFFSET);
+  RawChannel::PrintMAC(header->addr2);
   RawChannel::Debug(" / ");
-  RawChannel::PrintMAC(header + Raw80211::BSS_MAC_OFFSET);
+  RawChannel::PrintMAC(header->addr3);
+  
+  const uint8_t* pLen = (const uint8_t*)header + Raw80211::LENGTH_OFFSET;
+  int len = pLen[0] * 256 + pLen[1];
+  //RawChannel::Debug(" (Length: %d)\n", len);
+  Serial.printf(" (Length: %d)\n", len);
 #endif
 }
