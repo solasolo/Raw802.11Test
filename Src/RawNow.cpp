@@ -35,26 +35,15 @@ RawNow::RawNow(uint8_t channel)
 void RawNow::Start()
 {
   WiFi.mode(WIFI_STA);
-  esp_wifi_set_channel(this->Channel, WIFI_SECOND_CHAN_NONE);
+  CHECK(esp_wifi_set_channel(this->Channel, WIFI_SECOND_CHAN_NONE), "Wifi Set Channel");
   WiFi.disconnect();
 
-  if (esp_now_init() == ESP_OK)
-  {
-    RawChannel::Debug("ESPNow Init Success");
-  }
-  else
-  {
-    RawChannel::Debug("ESPNow Init Failed");
-    // Retry InitESPNow, add a counte and then restart?
-    // InitESPNow();
-    // or Simply Restart
-    ESP.restart();
-  }
+  CHECK(esp_now_init(), "ESPNow Init");
 
-  esp_wifi_config_espnow_rate(WIFI_IF_STA, WIFI_PHY_RATE_54M);
+  CHECK(esp_wifi_config_espnow_rate(WIFI_IF_STA, WIFI_PHY_RATE_54M), "ESPNow Config Rate");
 
-  esp_now_register_send_cb(OnDataSent);
-  esp_now_register_recv_cb(OnDataRecv);
+  CHECK(esp_now_register_send_cb(OnDataSent), "ESPNow Register Send Callback");
+  CHECK(esp_now_register_recv_cb(OnDataRecv), "ESPNow Register Recv Callback");
 }
 
 void RawNow::Send(const uint8_t *data, uint16_t data_len)
@@ -63,17 +52,7 @@ void RawNow::Send(const uint8_t *data, uint16_t data_len)
     RawChannel::PrintMAC(this->PeerMac);
     RawChannel::Debug("\n");
 
-    esp_err_t result = esp_now_send(this->PeerMac, data, data_len);
-
-    RawChannel::Debug("Send Status: ");
-    if (result == ESP_OK)
-    {
-      RawChannel::Debug("Success\n");
-    }
-    else
-    {
-      this->CheckNowError(result);
-    }
+    CHECK(esp_now_send(this->PeerMac, data, data_len), "ESPNow Send");
 }
 
 void RawNow::setPeer(const uint8_t mac[6])
@@ -85,7 +64,7 @@ void RawNow::setPeer(const uint8_t mac[6])
 
 void RawNow::AddPeer(const uint8_t mac[6])
 {
-  bool exists = false; // esp_now_is_peer_exist(addr);
+  bool exists = esp_now_is_peer_exist(mac);
 
   esp_now_peer_info_t Slave;
   memset(&Slave, 0, sizeof(Slave));
@@ -93,8 +72,6 @@ void RawNow::AddPeer(const uint8_t mac[6])
   memcpy(Slave.peer_addr, mac, 6);
   Slave.channel = 0;
   Slave.encrypt = 0;
-
-  Serial.printf("Set Peer at Channel: %d\r\n", this->Channel);
   
   if (exists)
   {
@@ -104,16 +81,7 @@ void RawNow::AddPeer(const uint8_t mac[6])
   else
   {
     // Slave not paired, attempt pair
-    esp_err_t addStatus = esp_now_add_peer(&Slave);
-    if (addStatus == ESP_OK)
-    {
-      // Pair success
-      Serial.println("Pair success");
-    }
-    else
-    {
-      this->CheckNowError(addStatus);
-    }
+    CHECK(esp_now_add_peer(&Slave), "ESPNow Add Peer");
   }
 }
 
@@ -170,33 +138,5 @@ void RawNow::Scan()
         break;
       }
     }
-  }
-}
-
-void RawNow::CheckNowError(esp_err_t res)
-{
-  switch (res)
-  {
-  case ESP_ERR_ESPNOW_NOT_INIT:
-    RawChannel::Debug("ESPNOW Not Init\n");
-    break;
-
-  case ESP_ERR_ESPNOW_ARG:
-    RawChannel::Debug("Invalid Argument\n");
-    break;
-
-  case ESP_ERR_ESPNOW_FULL:
-    RawChannel::Debug("Peer list full\n");
-    break;
-
-  case ESP_ERR_ESPNOW_NO_MEM:
-    RawChannel::Debug("Out of memory\n");
-    break;
-
-  case ESP_ERR_ESPNOW_EXIST:
-    RawChannel::Debug("Peer Exists\n");
-    break;
-
-  default : RawChannel::Debug("Not sure what happened\n");
   }
 }

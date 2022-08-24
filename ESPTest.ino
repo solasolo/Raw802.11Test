@@ -1,16 +1,17 @@
+#define DEBUG_PRINT
+
 #include "src/Raw80211.h"
 #include "src/RawNow.h"
 
 #define SENDER
-#define DEBUG_PRINT
 
 unsigned int Count = 0;
 char SendBuff[1500];
 
 uint8_t PeerAddress[] = {0x60, 0x55, 0xf9, 0x71, 0x8c, 0xc8};
 
-Raw80211 Channel(3);
-//RawNow Channel(3);
+//Raw80211 Channel(3);
+RawNow Channel(3);
 
 void setup()
 {

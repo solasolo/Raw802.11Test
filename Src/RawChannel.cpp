@@ -1,5 +1,8 @@
 #include "RawChannel.h"
 
+#include <esp_err.h>
+#include <esp_now.h>
+
 RawChannel::RawChannel(uint8_t channel)
 {
     this->ReceiveCallback = NULL;
@@ -41,6 +44,45 @@ void RawChannel::Debug(const char* format, ...)
     va_end(copy);
 #endif
 }
+
+/*
+bool RawChannel::Check(esp_err_t res, const char* where)
+{
+  bool ret = (res == ESP_OK);
+
+  if(!ret)
+  {
+    switch (res)
+    {
+    case ESP_ERR_ESPNOW_NOT_INIT:
+      Debug("ESPNow Not Init");
+      break;
+
+    case ESP_ERR_ESPNOW_ARG:
+      Debug("ESPNow Invalid Argument");
+      break;
+
+    case ESP_ERR_ESPNOW_FULL:
+      Debug("ESPNow Peer list full");
+      break;
+
+    case ESP_ERR_ESPNOW_NO_MEM:
+      Debug("ESPnow Out of memory");
+      break;
+
+    case ESP_ERR_ESPNOW_EXIST:
+      Debug("ESPNow Peer Exists");
+      break;
+
+    default : Debug("Not sure what happened");
+    } 
+
+    Debug(" @ %s\n", where);
+  }
+
+  return ret;
+}
+*/
 
 void RawChannel::PrintMAC(const uint8_t *mac)
 {

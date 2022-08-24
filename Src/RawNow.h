@@ -2,7 +2,7 @@
 #define _RAW_NOW_H
 
 #include "RawChannel.h"
-#include "esp_now.h"
+#include <esp_now.h>
 
 class RawNow : public RawChannel
 {
@@ -20,7 +20,6 @@ public:
     void Scan();
 
 private:
-    void CheckNowError(esp_err_t res);
     void AddPeer(const uint8_t mac[6]);    
 };
 

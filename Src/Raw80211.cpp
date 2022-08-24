@@ -89,7 +89,7 @@ void Raw80211::Send(const uint8_t *data, uint16_t len)
 
   memcpy(buf + SEQ_NUM_OFFSET, (char *)&sequence, 2);
 #ifdef ESP32
-  esp_wifi_80211_tx(WIFI_IF_STA, buf, Raw80211::HEAD_LENGTH + len, true);
+  CHECK(esp_wifi_80211_tx(WIFI_IF_STA, buf, Raw80211::HEAD_LENGTH + len, true), "Wifi 80211 Send");
 #else
   wifi_send_pkt_freedom(buf, Raw80211::HEAD_LENGTH + len, true);
 #endif
@@ -116,19 +116,20 @@ void Raw80211::Start()
   wifi_set_channel(_channel);
 #else
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  esp_wifi_init(&cfg);
-  esp_wifi_set_storage(WIFI_STORAGE_RAM);
-  //esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT40);
-  esp_wifi_config_80211_tx_rate(WIFI_IF_STA, WIFI_PHY_RATE_54M);
-  esp_wifi_start();
-  esp_wifi_set_mode(WIFI_MODE_STA);
-  esp_wifi_disconnect();
-  esp_wifi_set_promiscuous(1);
-  esp_wifi_set_promiscuous_rx_cb(wifi_sniffer_packet_handler);
+  
+  CHECK(esp_wifi_init(&cfg), "Wifi Init");
+  CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM), "Wifi Set Storage");
+  //CHECK(esp_wifi_set_bandwidth(WIFI_IF_STA, WIFI_BW_HT40), "Wifi Set Bandwidth");
+  CHECK(esp_wifi_config_80211_tx_rate(WIFI_IF_STA, WIFI_PHY_RATE_54M), "Wifi Config TX Rate");
+  CHECK(esp_wifi_start(), "Wifi Start");
+  CHECK(esp_wifi_set_mode(WIFI_MODE_STA), "Wifi Set Mode");
+  CHECK(esp_wifi_disconnect(), "Wifi Disconnect");
+  CHECK(esp_wifi_set_promiscuous(1), "Wifi Set Promiscuous");
+  CHECK(esp_wifi_set_promiscuous_rx_cb(wifi_sniffer_packet_handler), "Wifi Set Promiscuous Callback");
   wifi_promiscuous_filter_t filter = {WIFI_PROMIS_FILTER_MASK_ALL};
-  esp_wifi_set_promiscuous_filter(&filter); // TODO: Check - do we have to supply MAC somewhere?
-  esp_wifi_set_channel(this->Channel, WIFI_SECOND_CHAN_NONE);
-  esp_wifi_set_max_tx_power(127);
+  CHECK(esp_wifi_set_promiscuous_filter(&filter), "Wifi Set Promiscuous Filter"); 
+  CHECK(esp_wifi_set_channel(this->Channel, WIFI_SECOND_CHAN_NONE), "Wifi Set Channel");
+  CHECK(esp_wifi_set_max_tx_power(84), "Wifi Set Power");
 #endif
 }
 

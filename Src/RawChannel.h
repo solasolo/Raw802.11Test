@@ -1,12 +1,7 @@
 #ifndef _RAW_CHANNWL_H_
 #define _RAW_CHANNWL_H_
 
-#define DEBUG_PRINT // Uncomment to print debug output to Serial
-
-/**
- * WiFi (802.11) and SDK structures to use with WiFi.
- * Quite a few are not used currently. Still keeping them for reference.
- */
+#define DEBUG_PRINT
 
 #ifdef ESP32
 #include <WiFi.h>
@@ -93,6 +88,14 @@ struct WifiMacData
 {
 };
 
+#define CHECK(fn, where) ({                                                                        \
+    esp_err_t err_rc_ = (fn);                                                                      \
+    if (err_rc_ != ESP_OK) {                                                                       \
+        RawChannel::Debug("Error @ %s\n", where);                                                  \
+        _esp_error_check_failed_without_abort(err_rc_, __FILE__, __LINE__, __ASSERT_FUNC, #fn);    \      
+    }                                                                                              \                                                                            
+})
+
 class RawChannel
 {
 protected:
@@ -115,6 +118,7 @@ protected:
     uint8_t PeerMac[6];
     uint8_t ThisMac[6];
 
+    // bool Check(esp_err_t res, const char* where);
     void getMac(uint8_t *mac);
 };
 
